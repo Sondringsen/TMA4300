@@ -8,10 +8,7 @@ GDensity = function(x, alpha){
     return(x)
 }
 
-# A function of two inputs alpha and n, 
-# alpha is the first input parameter and n is the number of draws
 GSample = function(alpha, n){
-  # u is a vector of n i.i.d. random uniforms
   u = runif(n)
   
   # Defines the normalising constant
