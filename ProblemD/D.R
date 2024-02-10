@@ -101,7 +101,6 @@ C = 1.1 * max(sapply(validRoots, f_star)) #multiplying by 1.1 to ensure c > f_st
 Monte_Carlo_integration(10000,C)
 Numerical_integration()
 
-
 theoretical_alpha = integrate(f_star, lower=0, upper=1)$value/C
 print("Theoretical random numbers per sample (numerically estimated):")
 print(1/theoretical_alpha)
