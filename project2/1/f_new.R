@@ -3,7 +3,7 @@
 
 alpha <- 2
 beta <- 0.05
-iters <- 5000
+iters <- 22000
 conf_level <- 0.95
 load(file = "project2/data/rain.rda")
 y = rain[, "n.rain"]
@@ -39,9 +39,8 @@ mcmc_sampler <- function(alpha, beta, iters, conf_level, burnin=ceiling(iters/10
     
     for (t in 1:366) {
       if (t == 1){
-        proposal <- rnorm(1, x[2], sqrt(sigma_u_sq))
+        proposal <- rnorm(1, old_x[2], sqrt(sigma_u_sq))
       } else if (t != 366) {
-        # print(tail(new_x, n=1))
         proposal <- rnorm(1, (tail(new_x, n=1) + old_x[t+1])/2, sqrt(sigma_u_sq))
       } else if (t == 366) {
         proposal <- rnorm(1, tail(new_x, n=1), sqrt(sigma_u_sq))
@@ -49,7 +48,7 @@ mcmc_sampler <- function(alpha, beta, iters, conf_level, burnin=ceiling(iters/10
       
       new_pi = logit(proposal)
       pi <- logit(old_x[t])
-      acceptance_prob <- min(1, dbinom(y, n, new_pi)/dbinom(y, n, pi))
+      acceptance_prob <- min(1, dbinom(y[t], n[t], new_pi)/dbinom(y[t], n[t], pi))
       new_x <- c(new_x, ifelse(u[t] < acceptance_prob, proposal, old_x[t]))
       n_accepted <- n_accepted + (u[t] < acceptance_prob)
     }
@@ -59,7 +58,9 @@ mcmc_sampler <- function(alpha, beta, iters, conf_level, burnin=ceiling(iters/10
     chain[iter, ] <- c(new_x, sigma_u_sq)
     time[iter] <- elapsed_time
     
+    if (iter %% 100 == 0){print(iter/iters)}
   }
+  
   
   acceptance_prob <- n_accepted/(366*iters)
   
@@ -79,13 +80,34 @@ chain <- results$chain
 time <- results$time
 acceptance_prob <- results$acceptance
 
-print(chain)
 
-sliced = colMeans(chain)[10:365]
+# plot(chain[,1])
+# plot(chain[,201])
+# plot.ts(y)
+# plot.ts(colMeans(chain))
+# plot.ts(sliced)
+# plot(chain[, 366])
+# plot(chain[, 367])
 
-plot(chain[,201])
-plot.ts(y)
-plot.ts(colMeans(chain))
-plot.ts(sliced)
-plot(chain[, 366])
-plot(chain[, 367])
+library(ggplot2)
+
+prob_chain <- logit(chain[, 1:366])
+mcmc_chain <- as.mcmc(prob_chain)
+
+# credible_interval <- apply(mcmc_chain[, 1:366], 2, function(x) quantile(x, probs=c(0.025, 0.975)))
+# credible_interval <- HPDinterval(mcmc_chain[, 1:366], prob = 0.95)
+conf_levels = summary(mcmc_chain)$quantile
+# credible_interval = confint(lm(y~x))
+
+mean_pixt <- colMeans(mcmc_chain[, 1:366])
+t_values <- 1:366 # Change this if your t values differ
+# df <- data.frame(t=t_values, mean_pixt, lwr=credible_interval[1,], upr=credible_interval[2,])
+df <- data.frame(t=t_values, mean_pixt, lwr=conf_levels[,1], upr=conf_levels[,5])
+
+ggplot(df, aes(x=t)) +
+  geom_ribbon(aes(ymin=lwr, ymax=upr), fill="blue", alpha=0.2) +
+  geom_line(aes(y=mean_pixt), color="blue") +
+  #geom_line(aes(y=y/n))
+  labs(title="Posterior Mean of π(xt) with 95% Credible Intervals",
+       x="t", y="π(xt)") +
+  theme_minimal()
