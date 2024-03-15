@@ -1,9 +1,3 @@
-# install.packages(
-#     "INLA",
-#     repos=c(getOption("repos"),
-#     INLA="https://inla.r-inla-download.org/R/stable"),
-#     dep=TRUE)
-
 # Import the INLA library
 library("INLA")
 
@@ -21,26 +15,25 @@ formula1 = n.rain ~ -1 + f(day, model = "rw1", constr = FALSE, hyper = list(prec
 
 # Fit the inla model on formula1
 mod1 <- inla(formula1,
-             data = rain,
-             Ntrials = n.years,
-             control.compute = list(config = TRUE),
-             family = "binomial",
-             control.inla = control_inla)
+             data=rain, 
+             Ntrials=n.years, 
+             control.compute=list(config = TRUE),
+             family="binomial", 
+             control.inla=control_inla)
 
 # Print the elapsed time
-print("ELAPSED TIME=")
+print("ELAPSED TIME")
 print(proc.time() - ptm)
 
-# Declare the formula for part c)
-formula2 = n.rain ~ f(day, model = "rw1", constr = FALSE, hyper = list(prec = list(prior = "loggamma", param = c(2, 0.05))))
+formula2 = n.rain ~ f(day, model="rw1", constr=TRUE, hyper = list(prec = list(prior = "loggamma", param = c(2, 0.05))))
 
-# Fit the inla model on formula2
+
 mod2 <- inla(formula2,
-             data = rain,
-             Ntrials = n.years,
-             control.compute = list(config = TRUE),
-             family = "binomial",
-             control.inla = control_inla)
+             data=rain, 
+             Ntrials=n.years, 
+             control.compute=list(config = TRUE),
+             family="binomial", 
+             control.inla=control_inla)
 
 # # Fit the inla model on formula1 without the control parameters,
 # # to assess the robustness
