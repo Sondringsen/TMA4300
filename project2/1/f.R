@@ -125,7 +125,6 @@ df <- data.frame(t=t_values, mean_pixt, lwr=credible_interval[1,], upr=credible_
 ggplot(df, aes(x=t)) +
   geom_ribbon(aes(ymin=lwr, ymax=upr), fill="blue", alpha=0.2) +
   geom_line(aes(y=mean_pixt), color="blue") +
-  geom_line(aes(y=y), color="red") +
   labs(title="Posterior Mean of π(xt) with 95% Credible Intervals",
        x="t", y="π(xt)") +
   theme_minimal()

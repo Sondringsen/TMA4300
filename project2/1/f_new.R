@@ -1,13 +1,10 @@
-# setwd("/Users/sondrerogde/Library/Mobile Documents/com~apple~CloudDocs/Documents/NTNU/8. semester/TMA4300")
-
-
 alpha <- 2
 beta <- 0.05
-iters <- 22000
+iters <- 5000
 conf_level <- 0.95
 load(file = "project2/data/rain.rda")
-y = rain[, "n.rain"]
-n = rain[, "n.years"]
+y <- rain[, "n.rain"]
+n <- rain[, "n.years"]
 
 logit <- function(x) {1/(1+exp(-x))}
 
@@ -28,24 +25,22 @@ mcmc_sampler <- function(alpha, beta, iters, conf_level, burnin=ceiling(iters/10
   
   for (iter in 2:iters){
     u <- runif(366)
-    
-    sigma_alpha <- alpha + 1 + 365/2
-    sigma_beta <- beta + 1/2*sum((x[2:366] - x[1:365])^2)
-    sigma_u_sq <- 1/rgamma(1, sigma_alpha, sigma_beta)
-    
-    
     new_x = c()
     old_x = chain[iter-1, ]
     
+    sigma_alpha <- alpha + 365/2
+    sigma_beta <- beta + 1/2*sum((x[2:366] - x[1:365])^2)
+    sigma_u_sq <- 1/rgamma(1, shape=sigma_alpha, rate=sigma_beta)
+    
     for (t in 1:366) {
       if (t == 1){
-        proposal <- rnorm(1, old_x[2], sqrt(sigma_u_sq))
+        proposal <- rnorm(1, old_x[2], sd=sqrt(sigma_u_sq))
       } else if (t != 366) {
-        proposal <- rnorm(1, (tail(new_x, n=1) + old_x[t+1])/2, sqrt(sigma_u_sq))
+        proposal <- rnorm(1, (tail(new_x, n=1) + old_x[t+1])/2, sd=sqrt(sigma_u_sq))
       } else if (t == 366) {
-        proposal <- rnorm(1, tail(new_x, n=1), sqrt(sigma_u_sq))
+        proposal <- rnorm(1, tail(new_x, n=1), sd=sqrt(sigma_u_sq))
       }
-      
+
       new_pi = logit(proposal)
       pi <- logit(old_x[t])
       acceptance_prob <- min(1, dbinom(y[t], n[t], new_pi)/dbinom(y[t], n[t], pi))
@@ -87,7 +82,7 @@ acceptance_prob <- results$acceptance
 # plot.ts(colMeans(chain))
 # plot.ts(sliced)
 # plot(chain[, 366])
-# plot(chain[, 367])
+plot(chain[, 367])
 
 library(ggplot2)
 
@@ -107,7 +102,17 @@ df <- data.frame(t=t_values, mean_pixt, lwr=conf_levels[,1], upr=conf_levels[,5]
 ggplot(df, aes(x=t)) +
   geom_ribbon(aes(ymin=lwr, ymax=upr), fill="blue", alpha=0.2) +
   geom_line(aes(y=mean_pixt), color="blue") +
-  #geom_line(aes(y=y/n))
   labs(title="Posterior Mean of π(xt) with 95% Credible Intervals",
        x="t", y="π(xt)") +
   theme_minimal()
+
+
+hist(chain[, 1], main="Histogram of σ²", xlab="σ²", breaks=50)
+hist(chain[, 201], main="Histogram of σ²", xlab="σ²", breaks=50)
+hist(chain[, 366], main="Histogram of σ²", xlab="σ²", breaks=50)
+hist(chain[, 367], main="Histogram of σ²", xlab="σ²", breaks=50)
+
+acf(chain[, 1], main="Autocorrelation of σ²")
+acf(chain[, 201], main="Autocorrelation of σ²")
+acf(chain[, 366], main="Autocorrelation of σ²")
+acf(chain[, 367], main="Autocorrelation of σ²")
