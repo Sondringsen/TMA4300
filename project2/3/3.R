@@ -14,14 +14,13 @@ f <- function(p) {
 
   y <- rain$n.rain
   n <- rain$n.years
-  D <- length(y)
 
   # Compute the binomial terms of the log likelihood
   bin_terms <- -sum(y * log(sigmoid(p$x))) -
     sum((n - y) * log(1 - sigmoid(p$x)))
 
   # Compute the random walk terms of the log likelihood
-  rw_terms <- (D - 1) * log(p$var ** (1 / 2)) +
+  rw_terms <- (length(p$x) - 1) * log(p$var ** (1 / 2)) +
     (1 / (2 * p$var)) * sum((p$x[-1] - p$x[-length(p$x)])**2)
 
   return(bin_terms + rw_terms)
