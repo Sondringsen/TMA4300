@@ -4,7 +4,7 @@
 alpha <- 2
 beta <- 0.05
 iters <- 5000
-M <- 3
+M <- 1
 
 # loading data
 load(file = "project2/data/rain.rda")
@@ -102,23 +102,21 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
       x_b <- old_x[setdiff(1:366, a:b)]
       
       x_b <- matrix(x_b, nrow = length(x_b), ncol = 1)
-      mu <- Q_AA_inv_Q_AB %*% x_b
+      mu <- -1*Q_AA_inv_Q_AB %*% x_b
       cholesky <- sqrt(sigma_u_sq)*choleskys[[ch]]
       
       proposal <- mu + cholesky%*%matrix(rnorm(b-a+1), nrow = b-a+1, ncol = 1)
       
       # calculating new and old pi
-      print(proposal)
       new_pi <- logit(proposal)
-      print(new_pi)
       pi <- logit(old_x[a:b])
       
       # calculating acceptance probability (alpha)
       y_ab <- y[a:b]
       n_ab <- n[a:b]
-      log_likeliehood_ratio <- sum(y_ab*(log(new_pi) - log(pi)) + (n_ab-y_ab)*(log(1-new_pi)-log(1-pi)))
+      log_likelihood_ratio <- sum(y_ab*(log(new_pi) - log(pi)) + (n_ab-y_ab)*(log(1-new_pi)-log(1-pi)))
       # print(exp(log_likeliehood_ratio))
-      acceptance_prob <- min(1, exp(log_likeliehood_ratio))
+      acceptance_prob <- min(1, exp(log_likelihood_ratio))
       
       # accepting proposal based on acceptance probability
       if (u[ch] < acceptance_prob) {

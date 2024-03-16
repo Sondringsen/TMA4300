@@ -3,7 +3,7 @@
 # declaring parameters
 alpha <- 2
 beta <- 0.05
-iters <- 500
+iters <- 5000
 
 # loading data
 load(file = "project2/data/rain.rda")
@@ -46,7 +46,7 @@ mcmc_sampler <- function(alpha, beta, iters, burnin=ceiling(iters/10)){
     new_x = c()
     old_x = chain[iter-1, ]
     
-    # Gibb's sampling for sigma
+    # Gibbs sampling for sigma
     sigma_alpha <- alpha + 365/2
     sigma_beta <- beta + 1/2*sum((old_x[2:366] - old_x[1:365])^2)
     sigma_u_sq <- 1/rgamma(1, shape=sigma_alpha, scale=sigma_beta)
@@ -57,7 +57,7 @@ mcmc_sampler <- function(alpha, beta, iters, burnin=ceiling(iters/10)){
       if (t == 1){
         proposal <- rnorm(1, old_x[2], sd=sqrt(sigma_u_sq))
       } else if (t != 366) {
-        proposal <- rnorm(1, (tail(new_x, n=1) + old_x[t+1])/2, sd=sqrt(sigma_u_sq))
+        proposal <- rnorm(1, (tail(new_x, n=1) + old_x[t+1])/2, sd=sqrt(sigma_u_sq)/2)
       } else if (t == 366) {
         proposal <- rnorm(1, tail(new_x, n=1), sd=sqrt(sigma_u_sq))
       }
@@ -159,3 +159,4 @@ acf(chain[burnin + 1:iters, 1], main="Autocorrelation of x_1")
 acf(chain[burnin + 1:iters, 201], main="Autocorrelation of x_201")
 acf(chain[burnin + 1:iters, 366], main="Autocorrelation of x_366")
 acf(chain[burnin + 1:iters, 367], main="Autocorrelation of σ²")
+
