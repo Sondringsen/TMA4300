@@ -3,7 +3,7 @@
 # declaring parameters
 alpha <- 2
 beta <- 0.05
-iters <- 5000
+iters <- 500
 
 # loading data
 load(file = "project2/data/rain.rda")
