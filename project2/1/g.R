@@ -108,7 +108,9 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
       proposal <- mu + cholesky%*%matrix(rnorm(b-a+1), nrow = b-a+1, ncol = 1)
       
       # calculating new and old pi
-      new_pi = logit(proposal)
+      print(proposal)
+      new_pi <- logit(proposal)
+      print(new_pi)
       pi <- logit(old_x[a:b])
       
       # calculating acceptance probability (alpha)
