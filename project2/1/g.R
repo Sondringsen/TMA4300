@@ -3,8 +3,8 @@
 # declaring parameters
 alpha <- 2
 beta <- 0.05
-iters <- 5000
-M <- 1
+iters <- 50000
+M <- 30
 
 # loading data
 load(file = "project2/data/rain.rda")
@@ -14,7 +14,7 @@ n <- rain[, "n.years"]
 # logit function
 logit <- function(x) {1/(1+exp(-x))}
 
-#create Q
+# create Q
 get_Q <- function() {
   Q <- matrix(0, 366, 366)
   diag(Q) <- 2
@@ -34,13 +34,11 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
   
   # declaring initial data structures
   chain <- matrix(nrow=iters, ncol=367)
-  time <- rep(NA, iters)
   acceptance_probs = matrix(nrow=iters-1, ncol=n_chunks)
   
   
   # calculating initial x-value
   x <- (y+1)/(n+1)
-  # x <- rep(0.2, 366)
   pi <- logit(x)
   
   # sampling first sigma
@@ -49,10 +47,7 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
   # setting initial row for matrix
   chain[1,] <- c(x, sigma_u_sq)
   
-  # setting intial time
-  time[1] <- proc.time()[3]
-  
-  # start and end indices for the chunks
+  # start and end indices for all chunks
   a_idx <- seq(from = 1, to = floor(366 / M) * M + 1, by = M)
   b_idx <- a_idx+M-1
   b_idx[n_chunks] <- 366
@@ -68,14 +63,13 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
   #precompute matrices
   for (ch in 1:n_chunks) {
     A <- a_idx[ch]:b_idx[ch]
-    Q_AA = Q[A, A]
+    Q_AA <- Q[A, A]
     Q_AA_inv <- solve(Q[A,A])
     Q_AA_inv_matrices[[ch]] <- Q_AA_inv
     choleskys[[ch]] <- t(chol(Q_AA_inv))
     
     Q_AB <- Q[A, setdiff(1:366, A)]
     Q_AA_inv_Q_AB_matrices[[ch]] <- Q_AA_inv%*%Q_AB
-    
   }
   
   # outer loop used for sampling x-vector
@@ -94,17 +88,19 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
     
     # inner loop used for sampling x days
     for (ch in 1:n_chunks) {
-      # if-statement handling the three cases where t=1, 1<t<366, and t=366
       Q_AA_inv_Q_AB = Q_AA_inv_Q_AB_matrices[[ch]]
       
+      # indexes able to handle all three cases mentioned in the problem
       a <- a_idx[ch]
       b <- b_idx[ch]
       x_b <- old_x[setdiff(1:366, a:b)]
       
+      # calculates vectors and matrices needed for drawing conidtional multivariate normal
       x_b <- matrix(x_b, nrow = length(x_b), ncol = 1)
       mu <- -1*Q_AA_inv_Q_AB %*% x_b
       cholesky <- sqrt(sigma_u_sq)*choleskys[[ch]]
       
+      # draws mulitvariate normal using cholesky decomposition
       proposal <- mu + cholesky%*%matrix(rnorm(b-a+1), nrow = b-a+1, ncol = 1)
       
       # calculating new and old pi
@@ -115,7 +111,6 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
       y_ab <- y[a:b]
       n_ab <- n[a:b]
       log_likelihood_ratio <- sum(y_ab*(log(new_pi) - log(pi)) + (n_ab-y_ab)*(log(1-new_pi)-log(1-pi)))
-      # print(exp(log_likeliehood_ratio))
       acceptance_prob <- min(1, exp(log_likelihood_ratio))
       
       # accepting proposal based on acceptance probability
@@ -129,14 +124,11 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
       acceptance_probs[iter-1, ch] <- (u[ch] < acceptance_prob)
     }
     
-    # tracks time
-    elapsed_time <- proc.time()[3]
     
     # updates chain and time data structures
     chain[iter, ] <- c(new_x, sigma_u_sq)
-    time[iter] <- elapsed_time
     
-    if (iter %% 100 == 0){print(iter/iters)}
+    if (iter %% 1000 == 0){print(iter/iters)}
   }
   
   # calculates mean acceptance probabilities
@@ -145,31 +137,47 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
   # declares list to return
   result_list <- list(
     chain = chain,
-    time = time,
     acceptance_probs = acceptance_probs
   )
   return (result_list)
 }
 
-# calls the function
-results = mcmc_sampler(alpha, beta, iters, M)
+# calls the function and measures the runtime
+start_time <- proc.time()[3]
+results <- mcmc_sampler(alpha, beta, iters, M)
+end_time <- proc.time()[3]
+total_time = end_time - start_time
+print(total_time)
 
 # sets variables for returned values
 chain <- results$chain
-time <- results$time
 acceptance_probs <- results$acceptance_probs
 
 burnin = ceiling(iters/10)
 
 # traceplots of x_1, x_201, x_366, and sigma
-plot(chain[,1], type="l")
-plot(chain[,201], type="l")
-plot(chain[,366], type="l")
-plot(chain[,367], type="l")
+plot(chain[,1], type="l", ylab="x_1")
+title("Traceplot of x_1 (including burnin)")
+
+plot(chain[,201], type="l", ylab="x_201")
+title("Traceplot of x_201 (including burnin)")
+
+plot(chain[,366], type="l", ylab="x_366")
+title("Traceplot of x_366 (including burnin)")
+
+plot(chain[,367], type="l", ylab="σ²")
+title("Traceplot of σ² (including burnin)")
 
 # plot of acceptance probabilities for all days
 plot(acceptance_probs, type="l")
 abline(h = mean(acceptance_probs), col = "red", lty = 2)
+legend("topleft", 
+       legend = c("acceptance probabilities", "mean"), 
+       col = c("black", "red"), 
+       lty = 1, 
+       bty = "n")
+title("Acceptance probabilities for each batch")
+print(mean(acceptance_probs[1:12]))
 
 library(ggplot2)
 library(coda)
@@ -180,6 +188,13 @@ prob_chain <- logit(chain[, 1:366])
 # creates a mcmc-object of the chain (excluding sigma)
 mcmc_chain <- as.mcmc(prob_chain)
 
+# calculates confidence intervals for sigma
+mcmc_sigma <- as.mcmc(chain[, 367])
+conf_sigma <- summary(mcmc_sigma)$quantile
+print(mean(chain[, 367]))
+print(conf_sigma[c(1, 5)])
+
+
 # calculates confidence intervals
 conf_levels = summary(mcmc_chain)$quantile
 
@@ -188,26 +203,31 @@ mean_pixt <- colMeans(mcmc_chain[, 1:366])
 t_values <- 1:366
 
 # creates a dataframe with time-values, mean x-values and confidence levels
-df <- data.frame(t=t_values, mean_pixt, lwr=conf_levels[,1], upr=conf_levels[,5])
+df <- data.frame(t=t_values, mean=mean_pixt, lwr=conf_levels[,1], upr=conf_levels[,5])
+# names(df) <- c("Day", "Mean", "Lower", "Upper")
 
 # plots the mean x-values and confidence intervals with y-values from the dataset
-ggplot(df, aes(x=t)) +
-  geom_ribbon(aes(ymin=lwr, ymax=upr), fill="blue", alpha=0.2) +
-  geom_line(aes(y=mean_pixt), color="blue") +
-  geom_line(aes(y=y/n), color="red", alpha=0.5)
-labs(title="Posterior Mean of π(xt) with 95% Credible Intervals",
-     x="t", y="π(xt)") +
-  theme_minimal()
+ggplot(df, aes(x = t)) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr, fill="Credible Intervals"), alpha = 0.2) +
+  geom_line(aes(y = mean_pixt, color = "Mean probability")) +
+  geom_line(aes(y = y / n, color = "Observed Ratio"), alpha=0.5) +
+  labs(title = "Posterior Mean of π(x_t) with 95% Credible Intervals",
+       x = "t", y = "π(xt)", color = "Legend") +
+  scale_color_manual(values = c("Mean probability" = "blue", "Observed Ratio" = "red")) +
+  scale_fill_manual(name = "Credible Intervals", values = "blue") +  # Added for ribbon fill color
+  theme(legend.position = "bottom")
+
 
 # plots histograms of x_1, x_201, x_366 and σ²
-hist(chain[burnin + 1:iters, 1], main="Histogram of x_1", xlab="x_1", breaks=50)
-hist(chain[burnin + 1:iters, 201], main="Histogram of x_201", xlab="x_201", breaks=50)
-hist(chain[burnin + 1:iters, 366], main="Histogram of x_366", xlab="x_366", breaks=50)
-hist(chain[burnin + 1:iters, 367], main="Histogram of σ²", xlab="σ²", breaks=50)
+hist(chain[burnin + 1:iters, 1], main="Histogram of x_1 (excluding burnin)", xlab="x_1", breaks=50)
+hist(chain[burnin + 1:iters, 201], main="Histogram of x_201 (excluding burnin)", xlab="x_201", breaks=50)
+hist(chain[burnin + 1:iters, 366], main="Histogram of x_366 (excluding burnin)", xlab="x_366", breaks=50)
+hist(chain[burnin + 1:iters, 367], main="Histogram of σ² (excluding burnin)", xlab="σ²", breaks=50)
 
 
 # plots autocorrelation of x_1, x_201, x_366 and σ²
-acf(chain[burnin + 1:iters, 1], main="Autocorrelation of x_1")
-acf(chain[burnin + 1:iters, 201], main="Autocorrelation of x_201")
-acf(chain[burnin + 1:iters, 366], main="Autocorrelation of x_366")
-acf(chain[burnin + 1:iters, 367], main="Autocorrelation of σ²")
+acf(chain[burnin + 1:iters, 1], main="Autocorrelation of x_1 (excluding burnin)")
+acf(chain[burnin + 1:iters, 201], main="Autocorrelation of x_201 (excluding burnin)")
+acf(chain[burnin + 1:iters, 366], main="Autocorrelation of x_366 (excluding burnin)")
+acf(chain[burnin + 1:iters, 367], main="Autocorrelation of σ² (excluding burnin)")
+
