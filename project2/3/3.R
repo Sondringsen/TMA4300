@@ -45,19 +45,18 @@ end_time <- proc.time()[3]
 total_time = end_time - start_time
 print(total_time)
 
-print(obj$par)
-
 parameters <- sdreport(obj)
+
+
 t_values <- 1:366
-mean_probs <- logit(parameters$par.random[1:366])
-print(parameters$par.fixed)
+mle_probs <- logit(parameters$par.random[1:366])
 
-# creates a dataframe with time-values, mean x-values and confidence levels
-df <- data.frame(t = t_values, mean=mean_probs)
+# creates a dataframe with time-values, mle x-values and confidence levels
+df <- data.frame(t = t_values, mle=mle_probs)
 
-# plots the mean x-values with y-values from the dataset
+# plots the mle x-values with y-values from the dataset
 ggplot(df, aes(x = t)) +
-  geom_line(aes(y = mean, color = "RTMB MLE")) +
+  geom_line(aes(y = mle, color = "RTMB MLE")) +
   geom_line(aes(y = y / n, color = "Observed Ratio"), alpha=0.5) +
   labs(title = "Posterior Mean of π(x_t)",
        x = "t", y = "π(xt)", color = "Legend") +

@@ -11,8 +11,8 @@ load(file = "project2/data/rain.rda")
 y <- rain[, "n.rain"]
 n <- rain[, "n.years"]
 
-# logit function
-logit <- function(x) {1/(1+exp(-x))}
+# expit function
+expit <- function(x) {1/(1+exp(-x))}
 
 # create Q
 get_Q <- function() {
@@ -39,7 +39,7 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
   
   # calculating initial x-value
   x <- (y+1)/(n+1)
-  pi <- logit(x)
+  pi <- expit(x)
   
   # sampling first sigma
   sigma_u_sq <- 1/rgamma(1, alpha, beta)
@@ -104,8 +104,8 @@ mcmc_sampler <- function(alpha, beta, iters, M, burnin=ceiling(iters/10)){
       proposal <- mu + cholesky%*%matrix(rnorm(b-a+1), nrow = b-a+1, ncol = 1)
       
       # calculating new and old pi
-      new_pi <- logit(proposal)
-      pi <- logit(old_x[a:b])
+      new_pi <- expit(proposal)
+      pi <- expit(old_x[a:b])
       
       # calculating acceptance probability (alpha)
       y_ab <- y[a:b]
@@ -156,14 +156,14 @@ acceptance_probs <- results$acceptance_probs
 burnin = ceiling(iters/10)
 
 # traceplots of x_1, x_201, x_366, and sigma
-plot(chain[,1], type="l", ylab="x_1")
-title("Traceplot of x_1 (including burnin)")
+plot(expit(chain[,1]), type="l", ylab="π(x_1)")
+title("Traceplot of π(x_1) (including burnin)")
 
-plot(chain[,201], type="l", ylab="x_201")
-title("Traceplot of x_201 (including burnin)")
+plot(expit(chain[,201]), type="l", ylab="π(x_201)")
+title("Traceplot of π(x_201) (including burnin)")
 
-plot(chain[,366], type="l", ylab="x_366")
-title("Traceplot of x_366 (including burnin)")
+plot(expit(chain[,366]), type="l", ylab="π(x_366)")
+title("Traceplot of π(x_366) (including burnin)")
 
 plot(chain[,367], type="l", ylab="σ²")
 title("Traceplot of σ² (including burnin)")
@@ -183,7 +183,7 @@ library(ggplot2)
 library(coda)
 
 # calculates probabilities
-prob_chain <- logit(chain[, 1:366])
+prob_chain <- expit(chain[, 1:366])
 
 # creates a mcmc-object of the chain (excluding sigma)
 mcmc_chain <- as.mcmc(prob_chain)
@@ -219,15 +219,15 @@ ggplot(df, aes(x = t)) +
 
 
 # plots histograms of x_1, x_201, x_366 and σ²
-hist(logit(chain[burnin + 1:iters, 1]), main="Histogram of x_1 (excluding burnin)", xlab="x_1", breaks=50)
-hist(logit(chain[burnin + 1:iters, 201]), main="Histogram of x_201 (excluding burnin)", xlab="x_201", breaks=50)
-hist(logit(chain[burnin + 1:iters, 366]), main="Histogram of x_366 (excluding burnin)", xlab="x_366", breaks=50)
-hist(logit(chain[burnin + 1:iters, 367]), main="Histogram of σ² (excluding burnin)", xlab="σ²", breaks=50)
+hist(expit(chain[burnin + 1:iters, 1]), main="Histogram of π(x_1) (excluding burnin)", xlab="π(x_1)", breaks=50)
+hist(expit(chain[burnin + 1:iters, 201]), main="Histogram of π(x_201) (excluding burnin)", xlab="π(x_201)", breaks=50)
+hist(expit(chain[burnin + 1:iters, 366]), main="Histogram of π(x_366) (excluding burnin)", xlab="π(x_366)", breaks=50)
+hist(chain[burnin + 1:iters, 367], main="Histogram of σ² (excluding burnin)", xlab="σ²", breaks=50)
 
 
 # plots autocorrelation of x_1, x_201, x_366 and σ²
-acf(logit(chain[burnin + 1:iters, 1]), main="Autocorrelation of x_1 (excluding burnin)")
-acf(logit(chain[burnin + 1:iters, 201]), main="Autocorrelation of x_201 (excluding burnin)")
-acf(logit(chain[burnin + 1:iters, 366]), main="Autocorrelation of x_366 (excluding burnin)")
-acf(logit(chain[burnin + 1:iters, 367]), main="Autocorrelation of σ² (excluding burnin)")
+acf(expit(chain[burnin + 1:iters, 1]), main="Autocorrelation of π(x_1) (excluding burnin)")
+acf(expit(chain[burnin + 1:iters, 201]), main="Autocorrelation of π(x_201) (excluding burnin)")
+acf(expit(chain[burnin + 1:iters, 366]), main="Autocorrelation of π(x_366) (excluding burnin)")
+acf(chain[burnin + 1:iters, 367], main="Autocorrelation of σ² (excluding burnin)")
 

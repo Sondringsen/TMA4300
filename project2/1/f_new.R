@@ -103,14 +103,14 @@ acceptance_probs <- results$acceptance_probs
 burnin = ceiling(iters/10)
 
 # traceplots of x_1, x_201, x_366, and sigma
-plot(chain[,1], type="l", ylab="x_1")
-title("Traceplot of x_1 (including burnin)")
+plot(expit(chain[,1]), type="l", ylab="π(x_1)")
+title("Traceplot of π(x_1) (including burnin)")
 
-plot(chain[,201], type="l", ylab="x_201")
-title("Traceplot of x_201 (including burnin)")
+plot(expit(chain[,201]), type="l", ylab="π(x_201)")
+title("Traceplot of π(x_201) (including burnin)")
 
-plot(chain[,366], type="l", ylab="x_366")
-title("Traceplot of x_366 (including burnin)")
+plot(expit(chain[,366]), type="l", ylab="π(x_366)")
+title("Traceplot of π(x_366) (including burnin)")
 
 plot(chain[,367], type="l", ylab="σ²")
 title("Traceplot of σ² (including burnin)")
@@ -166,7 +166,7 @@ ggplot(df, aes(x = t)) +
   theme(legend.position = "bottom")
 
 
-  # plots histograms of x_1, x_201, x_366 and σ²
+# plots histograms of x_1, x_201, x_366 and σ²
 hist(expit(chain[burnin + 1:iters, 1]), main="Histogram of π(x_1) (excluding burnin)", xlab="π(x_1)", breaks=50)
 hist(expit(chain[burnin + 1:iters, 201]), main="Histogram of π(x_201) (excluding burnin)", xlab="π(x_201)", breaks=50)
 hist(expit(chain[burnin + 1:iters, 366]), main="Histogram of π(x_366) (excluding burnin)", xlab="π(x_366)", breaks=50)
