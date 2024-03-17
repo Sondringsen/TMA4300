@@ -225,27 +225,25 @@ x <- rain$n.rain
 var <- 0.05
 
 # Invoke the autodifferentiator
-obj <- MakeADFun(f, list(x = x, var = var), silent = TRUE)
+obj <- MakeADFun(f, list(x = x, var = var), random="x", silent = TRUE)
 # Obtain the maximum likelihood estimates
 opt <- nlminb(obj$par, obj$fn, obj$gr)
 
 parameters <- sdreport(obj)
 
-mle_rtmb <- logit(parameters$par.fixed[1:366])
+mle_rtmb <- logit(parameters$par.random[1:366])
 
 
 # Plotting --------------------------------------------------------------------------
 
-
-
 t_values <- 1:366
 df <- data.frame(t = t_values, mean_mcmc=mean_mcmc, mean_inla=mean_inla, mle_rtmb=mle_rtmb)
 
-# compares the model from 1g and the RTMB
+# compares the model from 1g, 2, and the RTMB
 ggplot(df, aes(x = t)) +
   geom_line(aes(y = mean_mcmc, color = "Mean MCMC")) +
   geom_line(aes(y = mean_inla, color = "Mean INLA")) +
-  geom_line(aes(y = mean_rtmb, color = "MLE RTMB")) +
+  geom_line(aes(y = mle_rtmb, color = "MLE RTMB")) +
   labs(title = "Posterior Mean/MLE of the three models",
        x = "t", y = "π(xt)", color = "Legend") +
   scale_color_manual(values = c("Mean MCMC" = "blue", "Mean INLA" = "green",

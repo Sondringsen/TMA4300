@@ -8,8 +8,6 @@ load(file = "project2/data/rain.rda")
 # Set the control parameters
 control_inla <- list(strategy = "simplified.laplace", int.strategy = "ccd")
 
-?control.inla
-
 # Declare the formula for part a)
 formula1 = n.rain ~ -1 + f(
     day, 
@@ -31,6 +29,8 @@ mod1 <- inla(formula1,
 # Print the elapsed time
 print("ELAPSED TIME SIMPLIFIED LAPLACE")
 print(proc.time() - ptm)
+
+print(1/mod1$summary.hyperpar)
 
 
 # creates a dataframe with time-values, mean x-values and confidence levels

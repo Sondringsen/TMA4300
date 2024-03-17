@@ -1,4 +1,4 @@
-#setwd("/Users/sondrerogde/Library/Mobile Documents/com~apple~CloudDocs/Documents/NTNU/8. semester/TMA4300")
+# setwd("/Users/sondrerogde/Library/Mobile Documents/com~apple~CloudDocs/Documents/NTNU/8. semester/TMA4300")
 
 # declaring parameters
 alpha <- 2
@@ -219,15 +219,15 @@ ggplot(df, aes(x = t)) +
 
 
 # plots histograms of x_1, x_201, x_366 and σ²
-hist(chain[burnin + 1:iters, 1], main="Histogram of x_1 (excluding burnin)", xlab="x_1", breaks=50)
-hist(chain[burnin + 1:iters, 201], main="Histogram of x_201 (excluding burnin)", xlab="x_201", breaks=50)
-hist(chain[burnin + 1:iters, 366], main="Histogram of x_366 (excluding burnin)", xlab="x_366", breaks=50)
-hist(chain[burnin + 1:iters, 367], main="Histogram of σ² (excluding burnin)", xlab="σ²", breaks=50)
+hist(logit(chain[burnin + 1:iters, 1]), main="Histogram of x_1 (excluding burnin)", xlab="x_1", breaks=50)
+hist(logit(chain[burnin + 1:iters, 201]), main="Histogram of x_201 (excluding burnin)", xlab="x_201", breaks=50)
+hist(logit(chain[burnin + 1:iters, 366]), main="Histogram of x_366 (excluding burnin)", xlab="x_366", breaks=50)
+hist(logit(chain[burnin + 1:iters, 367]), main="Histogram of σ² (excluding burnin)", xlab="σ²", breaks=50)
 
 
 # plots autocorrelation of x_1, x_201, x_366 and σ²
-acf(chain[burnin + 1:iters, 1], main="Autocorrelation of x_1 (excluding burnin)")
-acf(chain[burnin + 1:iters, 201], main="Autocorrelation of x_201 (excluding burnin)")
-acf(chain[burnin + 1:iters, 366], main="Autocorrelation of x_366 (excluding burnin)")
-acf(chain[burnin + 1:iters, 367], main="Autocorrelation of σ² (excluding burnin)")
+acf(logit(chain[burnin + 1:iters, 1]), main="Autocorrelation of x_1 (excluding burnin)")
+acf(logit(chain[burnin + 1:iters, 201]), main="Autocorrelation of x_201 (excluding burnin)")
+acf(logit(chain[burnin + 1:iters, 366]), main="Autocorrelation of x_366 (excluding burnin)")
+acf(logit(chain[burnin + 1:iters, 367]), main="Autocorrelation of σ² (excluding burnin)")
 
