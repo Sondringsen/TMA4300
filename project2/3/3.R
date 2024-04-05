@@ -20,8 +20,8 @@ f <- function(p) {
     sum((n - y) * log(1 - sigmoid(p$x)))
 
   # Compute the random walk terms of the log likelihood
-  rw_terms <- (length(p$x) - 1) * log(p$var ** (1 / 2)) +
-    (1 / (2 * p$var)) * sum((p$x[-1] - p$x[-length(p$x)])**2)
+  rw_terms <- (length(p$x) - 1) * log(1 / (p$prec ** (1 / 2))) +
+    (p$prec / 2) * sum((p$x[-1] - p$x[-length(p$x)])**2)
 
   return(bin_terms + rw_terms)
 }
@@ -29,10 +29,10 @@ f <- function(p) {
 # Set the random effects to 0
 x <- rain$n.rain * 0
 # Set the variance
-var <- 0.05
+prec <- 0.05
 
 # Invoke the autodifferentiator
-obj <- MakeADFun(f, list(x = x, var = var), random = "x", silent = TRUE)
+obj <- MakeADFun(f, list(x = x, prec = prec), random = "x", silent = TRUE)
 # Obtain the maximum likelihood estimates
 opt <- nlminb(obj$par, obj$fn, obj$gr)
 

@@ -29,14 +29,14 @@ mod1 <- inla(formula1,
 print("ELAPSED TIME SIMPLIFIED LAPLACE")
 print(proc.time() - ptm)
 
-plot(mod1, single = FALSE)
-dev.print(pdf, file="plots/a.pdf")
+# plot(mod1, single = FALSE)
+# dev.print(pdf, file="plots/a.pdf")
 
 # Declare the formula for part c)
 formula2 = n.rain ~ f(
     day, 
-    model="rw1", 
-    constr=TRUE, 
+    model = "rw1", 
+    constr = TRUE, 
     hyper = list(prec = list(prior = "loggamma", param = c(2, 0.05))))
 
 # Fit the inla model on formula2
@@ -47,8 +47,8 @@ mod2 <- inla(formula2,
              family="binomial", 
              control.inla=control_inla)
 
-plot(mod2, single = FALSE)
-dev.print(pdf, file="plots/c.pdf")
+# plot(mod2, single = FALSE)
+# dev.print(pdf, file="plots/c.pdf")
 
 control_inla_gaussian <- list(strategy = "gaussian", int.strategy = "ccd")
 
@@ -65,5 +65,5 @@ modg <- inla(formula1,
 print("ELAPSED TIME GAUSSIAN")
 print(proc.time() - ptm)
 
-plot(mod2, single = FALSE)
-dev.print(pdf, file="plots/gaussian-ccd.pdf")
+# plot(mod2, single = FALSE)
+# dev.print(pdf, file = "plots/gaussian-ccd.pdf")
