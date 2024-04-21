@@ -42,7 +42,27 @@ var <- estimate_var(sample)
 estimate_bias <- function(model, sample) {
 
   return(colMeans(sample) - model$coef)
+
 }
+
+
+
+check_significance <- function(sample_vec, true_val){
+  biases <- sample_vec - true_val
+  conf <- percentile_method(biases, 0.05)
+  print(conf)
+  if (conf[1] < 0 & conf[2] > 1) {
+    return (FALSE)
+  }
+  else {
+    return (TRUE)
+  }
+}
+
+significant_bias_0 = check_significance(sample[, 1], mod$coef[1])
+significant_bias_1 = check_significance(sample[, 2], mod$coef[2])
+
+
 
 bias <- estimate_bias(mod, sample)
 
@@ -51,17 +71,18 @@ bias_corrected_estimates <- mod$coef + bias
 # Problem 1.d
 
 percentile_method <- function(sample_vec, alpha) {
-  # returns the quantiles P(q_1 <= theta <= q_2) = 1 - alpha
-  print(sample_vec)
   sorted_vec = sort(sample_vec)
-  print(sorted_vec)
   q1_idx = floor(length(sample_vec)*alpha/2)
   q2_idx = ceiling(length(sample_vec)*(1-alpha)/2)
   return (c(sorted_vec[q1_idx], sorted_vec[q2_idx]))
 }
 
 alpha = 0.05
-theta_0_int = percentile_method(sample[ , 1], alpha)
-theta_1_int = percentile_method(sample[ , 2], alpha)
+beta_0_int = percentile_method(sample[ , 1], alpha)
+beta_1_int = percentile_method(sample[ , 2], alpha)
+
+confint(mod)
+
+var(sample)
 
 
