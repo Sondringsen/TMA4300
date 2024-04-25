@@ -50,8 +50,8 @@ calculate_interval_for_beta <- function(x, alpha) {
   z_one_minus_alpha <- qnorm(1 - alpha / 2)
   
   # Adjusted quantiles for the BCa interval
-  beta_1 <- pnorm((b + z_alpha) / (1 - a * (b + z_alpha)))
-  beta_2 <- pnorm((b + z_one_minus_alpha) / (1 - a * (b + z_one_minus_alpha)))
+  beta_1 <- pnorm(b + (b + z_alpha) / (1 - a * (b + z_alpha)))
+  beta_2 <- pnorm(b + (b + z_one_minus_alpha) / (1 - a * (b + z_one_minus_alpha)))
   
   #computing the lower and upper bound of the interval
   lower_bound = mean(x)*qchisq(beta_1, 2*n)/(2*n)
