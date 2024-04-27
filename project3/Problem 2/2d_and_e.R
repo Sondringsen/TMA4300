@@ -60,6 +60,8 @@ calculate_interval_for_beta <- function(x, alpha) {
   return(c(lower_bound, upper_bound))
 }
 
+
+
 # Function to simulate one experiment and check if the true beta is within the BCa interval
 simulate_one_experiment <- function(true_beta, sample_size, alpha) {
   # Generate a sample
