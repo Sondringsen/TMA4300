@@ -30,9 +30,10 @@ sample <- boot(mod)
 estimate_var <- function(sample){
 
   means <- colMeans(sample)
-  vars <- 1 / (nrow(sample) - 1) * colSums((sample - means)**2)
+  var1 <- 1 / (nrow(sample) - 1) * sum((sample[, 1] - means[1])**2)
+  var2 <- 1 / (nrow(sample) - 1) * sum((sample[, 2] - means[2])**2)
 
-  return(vars)
+  return (c(var1, var2))
 }
 
 var <- estimate_var(sample)
@@ -62,11 +63,9 @@ check_significance <- function(sample_vec, true_val){
 significant_bias_0 = check_significance(sample[, 1], mod$coef[1])
 significant_bias_1 = check_significance(sample[, 2], mod$coef[2])
 
-
-
 bias <- estimate_bias(mod, sample)
 
-bias_corrected_estimates <- mod$coef + bias
+bias_corrected_estimates <- mod$coef - bias
 
 # Problem 1.d
 
